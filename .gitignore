@@ -1,0 +1,15 @@
+node_modules
+dist
+
+# Android
+.gradle
+build
+local.properties
+*.iml
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+*.log
