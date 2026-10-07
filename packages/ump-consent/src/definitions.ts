@@ -151,6 +151,11 @@ export interface UmpConsentPlugin {
   /**
    * The stored consent state, without any network request or UI.
    *
+   * `gdprApplies`, `purposeConsents` and `consentMode` are read from storage
+   * and are valid from the start. `status` and `canRequestAds` come from UMP,
+   * which reports `'unknown'` and `false` until `requestConsent()` has been
+   * called in the current launch.
+   *
    * @since 0.1.0
    */
   getConsentState(): Promise<ConsentState>;

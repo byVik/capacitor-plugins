@@ -78,7 +78,7 @@ public class PlayGamesPlugin extends Plugin {
         ret.put("isAuthenticated", authenticated);
         Exception e = task.getException();
         if (!authenticated && e != null) {
-            String message = String.valueOf(e.getMessage());
+            String message = describe(e);
             if (e instanceof ApiException) {
                 ret.put("errorCode", ((ApiException) e).getStatusCode());
             }
@@ -400,6 +400,17 @@ public class PlayGamesPlugin extends Plugin {
     // The Google API status code travels as the error code, so callers can branch on it.
     private void reject(PluginCall call, Exception e) {
         String code = e instanceof ApiException ? String.valueOf(((ApiException) e).getStatusCode()) : null;
-        call.reject(String.valueOf(e.getMessage()), code, e);
+        call.reject(describe(e), code, e);
+    }
+
+    // An ApiException's own message is just "<code>: ". The status name says what happened.
+    private static String describe(Exception e) {
+        if (e instanceof ApiException) {
+            ApiException api = (ApiException) e;
+            String name = GamesClientStatusCodes.getStatusCodeString(api.getStatusCode());
+            String detail = api.getStatus().getStatusMessage();
+            return detail == null || detail.isEmpty() ? name : name + ": " + detail;
+        }
+        return String.valueOf(e.getMessage());
     }
 }

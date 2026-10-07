@@ -83,6 +83,8 @@ Where GDPR does not apply (UMP reports that no consent is required), all four ar
 
 Until UMP knows whether the user has to be asked, for example on a first launch without network, nothing is granted and nothing is applied: your manifest defaults stay in force.
 
+Google's SDKs can infer the three ad signals from the TC string on their own, but only when the CMP writes `IABTCF_EnableAdvertiserConsentMode = 1`. This plugin does not rely on that flag, and it also sets `analytics_storage`.
+
 Only TCF (GDPR) messages are mapped. Other message types, such as US state regulations, are not translated to Consent Mode: for those users the four signals are granted.
 
 The same signals are returned in `ConsentState.consentMode`. To apply them yourself, turn the automatic step off:
@@ -202,6 +204,11 @@ getConsentState() => Promise<ConsentState>
 ```
 
 The stored consent state, without any network request or UI.
+
+`gdprApplies`, `purposeConsents` and `consentMode` are read from storage
+and are valid from the start. `status` and `canRequestAds` come from UMP,
+which reports `'unknown'` and `false` until `requestConsent()` has been
+called in the current launch.
 
 **Returns:** <code>Promise&lt;<a href="#consentstate">ConsentState</a>&gt;</code>
 
