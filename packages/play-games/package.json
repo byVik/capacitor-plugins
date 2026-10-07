@@ -1,6 +1,6 @@
 {
   "name": "@byvik/capacitor-play-games",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Google Play Games Services v2 for Capacitor: sign-in, leaderboards, achievements and cloud saved games.",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",

@@ -91,6 +91,10 @@ export interface LeaderboardOptions {
   timeSpan?: LeaderboardTimeSpan;
 
   /**
+   * `'friends'` needs the player's permission to read their friends list.
+   * Until they have granted it, `getLeaderboardStanding` rejects with code
+   * `'26703'` (CONSENT_REQUIRED).
+   *
    * @default 'public'
    * @since 0.1.0
    */

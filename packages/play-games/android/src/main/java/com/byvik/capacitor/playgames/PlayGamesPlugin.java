@@ -11,6 +11,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.games.AuthenticationResult;
 import com.google.android.gms.games.GamesClientStatusCodes;
+import com.google.android.gms.games.LeaderboardsClient;
 import com.google.android.gms.games.PlayGames;
 import com.google.android.gms.games.PlayGamesSdk;
 import com.google.android.gms.games.SnapshotsClient;
@@ -163,6 +164,10 @@ public class PlayGamesPlugin extends Plugin {
 
     // Rank, score and number of entries come from the same leaderboard variant, so they are read
     // in one call: fetched separately, a rank could be paired with a count from another moment.
+    //
+    // A variant only carries those values once this client has loaded scores for its time span and
+    // collection; plain leaderboard metadata reports every other variant as unknown. Loading the
+    // player-centered page of the requested variant is what fills it in.
     @PluginMethod
     public void getLeaderboardStanding(PluginCall call) {
         String leaderboardId = call.getString("leaderboardId");
@@ -174,36 +179,47 @@ public class PlayGamesPlugin extends Plugin {
         int collection = collection(call);
         boolean forceReload = Boolean.TRUE.equals(call.getBoolean("forceReload", false));
         PlayGames.getLeaderboardsClient(getActivity())
-            .loadLeaderboardMetadata(leaderboardId, forceReload)
+            .loadPlayerCenteredScores(leaderboardId, timeSpan, collection, 1, forceReload)
             .addOnSuccessListener((data) -> {
                 // Play reports "unknown" as -1; it is surfaced as null instead.
                 JSObject ret = new JSObject();
                 ret.put("rank", JSONObject.NULL);
                 ret.put("score", JSONObject.NULL);
                 ret.put("numScores", JSONObject.NULL);
-                Leaderboard leaderboard = data == null ? null : data.get();
-                if (leaderboard != null && leaderboard.getVariants() != null) {
-                    for (LeaderboardVariant variant : leaderboard.getVariants()) {
-                        if (variant.getTimeSpan() != timeSpan || variant.getCollection() != collection) {
-                            continue;
-                        }
-                        if (variant.getNumScores() != LeaderboardVariant.NUM_SCORES_UNKNOWN) {
-                            ret.put("numScores", variant.getNumScores());
-                        }
-                        if (variant.hasPlayerInfo()) {
-                            if (variant.getPlayerRank() != LeaderboardVariant.PLAYER_RANK_UNKNOWN) {
-                                ret.put("rank", variant.getPlayerRank());
-                            }
-                            if (variant.getRawPlayerScore() != LeaderboardVariant.PLAYER_SCORE_UNKNOWN) {
-                                ret.put("score", variant.getRawPlayerScore());
-                            }
-                        }
-                        break;
+                LeaderboardsClient.LeaderboardScores scores = data == null ? null : data.get();
+                if (scores != null) {
+                    try {
+                        readStanding(scores.getLeaderboard(), timeSpan, collection, ret);
+                    } finally {
+                        scores.release();
                     }
                 }
                 call.resolve(ret);
             })
             .addOnFailureListener((e) -> reject(call, e));
+    }
+
+    private static void readStanding(Leaderboard leaderboard, int timeSpan, int collection, JSObject ret) {
+        if (leaderboard == null || leaderboard.getVariants() == null) {
+            return;
+        }
+        for (LeaderboardVariant variant : leaderboard.getVariants()) {
+            if (variant.getTimeSpan() != timeSpan || variant.getCollection() != collection) {
+                continue;
+            }
+            if (variant.getNumScores() != LeaderboardVariant.NUM_SCORES_UNKNOWN) {
+                ret.put("numScores", variant.getNumScores());
+            }
+            if (variant.hasPlayerInfo()) {
+                if (variant.getPlayerRank() != LeaderboardVariant.PLAYER_RANK_UNKNOWN) {
+                    ret.put("rank", variant.getPlayerRank());
+                }
+                if (variant.getRawPlayerScore() != LeaderboardVariant.PLAYER_SCORE_UNKNOWN) {
+                    ret.put("score", variant.getRawPlayerScore());
+                }
+            }
+            return;
+        }
     }
 
     @PluginMethod
@@ -409,7 +425,7 @@ public class PlayGamesPlugin extends Plugin {
             ApiException api = (ApiException) e;
             String name = GamesClientStatusCodes.getStatusCodeString(api.getStatusCode());
             String detail = api.getStatus().getStatusMessage();
-            return detail == null || detail.isEmpty() ? name : name + ": " + detail;
+            return detail == null || detail.isEmpty() || detail.equals(name) ? name : name + ": " + detail;
         }
         return String.valueOf(e.getMessage());
     }

@@ -7,7 +7,7 @@ Google Play Games Services **v2** for Capacitor: sign-in, leaderboards, achievem
 - Leaderboard standing: the player's rank and the number of scores in one call.
 - Android only. On iOS and web every method rejects, so guard calls with `Capacitor.getPlatform() === 'android'`.
 
-> **Status (0.1.0):** extracted from a game in production on Google Play. Since the extraction, the plugin has been run on a device only while signed out, to check the setup and error paths. The signed-in flows have not been re-run in this packaged form yet, and `incrementAchievement`, `revealAchievement`, `showAllLeaderboards` and the queued `submitScore` are new. Please open an issue if something breaks.
+Tested on a physical device (Android 12) against a real Play Games Services project: sign-in, player, score submission, standing, achievements, saved games and Google's leaderboard and achievement screens.
 
 ## Install
 
@@ -415,11 +415,11 @@ rejects when it could not be read.
 
 #### LeaderboardOptions
 
-| Prop                | Type                                                                    | Default                | Since |
-| ------------------- | ----------------------------------------------------------------------- | ---------------------- | ----- |
-| **`leaderboardId`** | <code>string</code>                                                     |                        | 0.1.0 |
-| **`timeSpan`**      | <code><a href="#leaderboardtimespan">LeaderboardTimeSpan</a></code>     | <code>'allTime'</code> | 0.1.0 |
-| **`collection`**    | <code><a href="#leaderboardcollection">LeaderboardCollection</a></code> | <code>'public'</code>  | 0.1.0 |
+| Prop                | Type                                                                    | Description                                                                                                                                                                | Default                | Since |
+| ------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ----- |
+| **`leaderboardId`** | <code>string</code>                                                     |                                                                                                                                                                            |                        | 0.1.0 |
+| **`timeSpan`**      | <code><a href="#leaderboardtimespan">LeaderboardTimeSpan</a></code>     |                                                                                                                                                                            | <code>'allTime'</code> | 0.1.0 |
+| **`collection`**    | <code><a href="#leaderboardcollection">LeaderboardCollection</a></code> | `'friends'` needs the player's permission to read their friends list. Until they have granted it, `getLeaderboardStanding` rejects with code `'26703'` (CONSENT_REQUIRED). | <code>'public'</code>  | 0.1.0 |
 
 
 #### AchievementOptions
