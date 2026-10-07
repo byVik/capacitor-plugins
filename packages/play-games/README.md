@@ -7,6 +7,8 @@ Google Play Games Services **v2** for Capacitor: sign-in, leaderboards, achievem
 - Leaderboard standing: the player's rank and the number of scores in one call.
 - Android only. On iOS and web every method rejects, so guard calls with `Capacitor.getPlatform() === 'android'`.
 
+> **Status (0.1.0):** extracted from a game in production on Google Play. Since the extraction, the plugin has been run on a device only while signed out, to check the setup and error paths. The signed-in flows have not been re-run in this packaged form yet, and `incrementAchievement`, `revealAchievement`, `showAllLeaderboards` and the queued `submitScore` are new. Please open an issue if something breaks.
+
 ## Install
 
 ```bash
